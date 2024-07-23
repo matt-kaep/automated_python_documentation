@@ -24,9 +24,9 @@ class ChatPDF:
     chain = None
 
     os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
-    os.environ["AZURE_OPENAI_ENDPOINT"] = "https://elevengpt.openai.azure.com/"
-    os.environ["AZURE_OPENAI_API_KEY"] = "4a8f724e3ef84157bc5378553d3dec14"
-    os.environ["openai_api_key"] = "4a8f724e3ef84157bc5378553d3dec14"
+    os.environ["AZURE_OPENAI_ENDPOINT"] = "your_openai_endpoint"
+    os.environ["AZURE_OPENAI_API_KEY"] = "your_openai_api_key"
+    os.environ["openai_api_key"] = "your_openai_api_key"
 
     def __init__(self):
         self.model = AzureChatOpenAI(azure_deployment="gpt4_32k",
