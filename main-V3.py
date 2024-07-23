@@ -8,11 +8,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
+#os.environ["AZURE_OPENAI_ENDPOINT"] = "your_endpoint"
+#os.environ["AZURE_OPENAI_API_KEY"] = "your_key"
 
 
 
-
-def send_to_chatgpt(code, dockstrings_completion, Readme_completion, model):
+def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_completion, model):
     llm = AzureChatOpenAI(
         #azure_deployment="gpt4_32k",
         azure_deployment=model,
@@ -80,6 +81,42 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, model):
 
         )
 
+    if advisory_completion:
+        prompt = ChatPromptTemplate.from_template(
+            """Prompt:
+            Generate an advisory in markdown format for the provided project.
+            The advisory should include the following sections:
+
+            1. Code Summary
+            A comprehensive and complete summary of what the code does and its purpose.
+
+            2. Summary
+            A brief summary of the issues and their impact.
+
+            3. Issues
+            A list of the issues found in the code, including:
+            - A detailed description of the issue.
+            - The impact of the issue.
+            - An example of the affected code, if applicable.
+            - Recommendations for how to fix the issue.
+
+            4. Optimization Ideas
+            A list of ideas for optimizing the code, including:
+            - A detailed description of the optimization idea.
+            - The potential benefits of the optimization.
+            - An example of how to implement the optimization, if applicable.
+
+            5. Code Reorganization
+            Recommendations for how to reorganize the code to improve its structure and readability, including:
+            - A detailed description of the recommended changes.
+            - An example of how the code could be reorganized, if applicable.
+
+            6. References
+            A list of links to relevant resources, such as bug reports or security advisories.
+
+            Here is the code: {code}"""
+        )
+
     output_parser = StrOutputParser()
 
     chain = prompt | llm | output_parser
@@ -92,9 +129,9 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, model):
 
 
 
-def main(root_dir, dockstring_bool = False, Readme_bool = False):
-    if not dockstring_bool and not Readme_bool:
-        print("No arguments provided. Please provide either 'dockstring' or 'Readme' as an argument.")
+def main(root_dir, dockstring_bool = False, Readme_bool = False, advisory_bool = False):
+    if not dockstring_bool and not Readme_bool and not advisory_bool:
+        print("No arguments provided. Please provide either 'dockstring' or 'Readme' or 'advisory' argument.")
         return
     start_time = time.time()  # start timer
     num_files_processed = 0
@@ -106,11 +143,11 @@ def main(root_dir, dockstring_bool = False, Readme_bool = False):
                     file_path = os.path.join(dirpath, filename)
                     with open(file_path, "r") as file:
                         code = file.read()
-                    docstrings = send_to_chatgpt(code, True, False, model = "eleven_gpt_35_turbo_16k")
+                    docstrings = send_to_chatgpt(code, True, False, False, model = "eleven_gpt_35_turbo_16k")
                     with open(file_path[:len(file_path)-3] + '_commented.py', "w") as file:
                         file.write(docstrings)
                     num_files_processed += 1
-            if Readme_bool:
+            if Readme_bool or advisory_bool:
                 Readme_promt_memory += f"## {filename}\n\n"
                 if filename.endswith(".py"):
                     file_path = os.path.join(dirpath, filename)
@@ -119,9 +156,13 @@ def main(root_dir, dockstring_bool = False, Readme_bool = False):
                     Readme_promt_memory += f"```python\n{code}\n```\n\n"
                 Readme_promt_memory += "***\n\n"
         if Readme_bool:
-            Readme_generation = send_to_chatgpt(Readme_promt_memory, False, True, model = "gpt4_32k")
+            Readme_generation = send_to_chatgpt(Readme_promt_memory, False, True, False, model = "gpt4_32k")
             with open(dirpath + '/Generated_Readme.md', "w") as file:
                 file.write(Readme_generation)
+        if advisory_bool:
+            advisory_generation = send_to_chatgpt(Readme_promt_memory, False, False, True, model = "gpt4_32k")
+            with open(dirpath + '/Generated_advisory.md', "w") as file:
+                file.write(advisory_generation)
     end_time = time.time()  # end timer
     elapsed_time = end_time - start_time  # calculate elapsed time
     print(f"{num_files_processed} files processed in {elapsed_time:.2f} seconds.")
@@ -132,5 +173,6 @@ if __name__ == "__main__":
     parser.add_argument("folder", help="The root folder containing Python files to process.")
     parser.add_argument("--dockstring", help="Add dockstring to the functions in the python files.", action="store_true")
     parser.add_argument("--Readme", help="Generate a Readme file for the python files.", action="store_true")
+    parser.add_argument("--advisory", help="Generate an advisory file for the python files.", action="store_true")
     args = parser.parse_args()
-    main(args.folder, args.dockstring, args.Readme)
+    main(args.folder, args.dockstring, args.Readme, args.advisory)

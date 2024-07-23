@@ -45,10 +45,20 @@ pip install -r requirements.txt
 ```
 
 3. Set the environment variables for the Azure OpenAI API key and endpoint:
+On macos :
 ```bash
 export OPENAI_API_KEY=<your_api_key>
 export AZURE_OPENAI_ENDPOINT=<your_endpoint>
 ```
+
+On Windows :
+```shell
+set OPENAI_API_KEY=<your_api_key>
+set AZURE_OPENAI_ENDPOINT=<your_endpoint>
+```
+
+if it doesn't work, delete the "#" at the begining that defines the global variable and add you api key and endpoint
+
 
 ### Running the project
 To run the project, open a command prompt or terminal window and navigate to the root folder of the project. Then run the following command:
