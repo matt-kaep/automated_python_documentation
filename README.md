@@ -41,7 +41,7 @@ Use the last version main-V3.py for getting the dockstrings and the commentary.
 2. Install the required packages using pip:
 
 ```shell
-pip install azure-identity langchain openai astunparse
+pip install -r requirements.txt
 ```
 
 3. Set the environment variables for the Azure OpenAI API key and endpoint:
