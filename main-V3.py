@@ -86,9 +86,8 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, model):
     chain = prompt | llm | output_parser
 
     completion = chain.invoke({"code": code})
-    # The docstrings will be returned as a single string, with each docstring
-    # separated by a triple-quoted string. We can split the string to get a
-    # dictionary mapping function names to docstrings.
+    if completion[:9] == "```python":
+        completion = completion[10:len(completion)-3]	
     return completion
 
 
