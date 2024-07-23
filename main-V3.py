@@ -8,8 +8,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://elevengpt.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "4a8f724e3ef84157bc5378553d3dec14"
+
 
 
 
@@ -27,14 +26,16 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, model):
     )
     if dockstrings_completion:
         prompt = ChatPromptTemplate.from_template(
-        "Generate docstrings and comments for each function in the provided Python code. "
-        "The docstrings should follow the NumPy docstring format and include the following sections: "
-        "- Summary: A brief summary of what the function does. "
-        "- Parameters: A list of each parameter, with a brief description of what it does. "
-        "- Returns: A description of the return value(s) of the function. "
-        "Comments should be added to explain any complex or non-obvious code. "
-        "Do not add any introduction sentence or triple quotes to your answer, just the return of the prompt. "
-        "Here is the code: {code}"
+        """Generate docstrings and comments for each function and each class in the provided Python code.
+        The docstrings of the function should follow the NumPy docstring format and include the following sections:
+        - Summary: A precise and comprehensive summary of what the function does.
+        - Parameters: A list of each parameter, with a brief description of what it does.
+        - Returns: A description of the return value(s) of the function.
+        The dockstrings of the class should follow the classic docstring format for classes.
+        Comments must be added at the end of the lines to explain the code inside or outside function and class.
+        Do not add any introduction sentence or triple quotes to your answer, just the return of the prompt.
+        ***
+        Here is the code: {code}"""
         )
     if Readme_completion:
         prompt = ChatPromptTemplate.from_template(
