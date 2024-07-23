@@ -53,6 +53,8 @@ export AZURE_OPENAI_ENDPOINT=<your_endpoint>
 ### Running the project
 To run the project, open a command prompt or terminal window and navigate to the root folder of the project. Then run the following command:
 ```shell
-python main-V3.py <path_to_root_folder>
+python main-V3.py --dockstring --Readme <path_to_root_folder>
 ```
 Replace <path_to_root_folder> with the path to the root folder containing the Python files you want to process.
+Use --dockstring if you want the dockstrings and comments generation
+Yse --Readme if you want the generated Readme
