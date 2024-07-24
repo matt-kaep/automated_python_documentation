@@ -8,12 +8,24 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://elevengpt.openai.azure.com/"
+os.environ["AZURE_OPENAI_API_KEY"] = "4a8f724e3ef84157bc5378553d3dec14"
+
 #os.environ["AZURE_OPENAI_ENDPOINT"] = "your_endpoint"
 #os.environ["AZURE_OPENAI_API_KEY"] = "your_key"
 
-
-
 def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_completion, model):
+    """
+    Summary: Sends the code to ChatGPT for generating docstrings, README, or advisory.
+    Parameters:
+        - code (str): The Python code to process.
+        - dockstrings_completion (bool): Whether to generate docstrings.
+        - Readme_completion (bool): Whether to generate a README file.
+        - advisory_completion (bool): Whether to generate an advisory file.
+        - model (str): The model to use for generating the output.
+    Returns:
+        str: The generated output.
+    """
     llm = AzureChatOpenAI(
         #azure_deployment="gpt4_32k",
         azure_deployment=model,
@@ -34,7 +46,7 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_co
         - Returns: A description of the return value(s) of the function.
         The dockstrings of the class should follow the classic docstring format for classes.
         Comments must be added at the end of the lines to explain the code inside or outside function and class.
-        Do not add any introduction sentence or triple quotes to your answer, just the return of the prompt.
+        Do not add any introduction sentence or triple quotes to your answer, just the return of the prompt in only one block of code.
         ***
         Here is the code: {code}"""
         )
@@ -48,7 +60,7 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_co
             One paragraph description of the project.
 
             ## About
-            A brief description of what the project does and its purpose.
+            A brief description of what the project does and its purpose. An explanation of what each file in the project does.
 
             ## Getting Started
             Instructions on how to get the project up and running on a local machine.
@@ -126,10 +138,15 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_co
         completion = completion[10:len(completion)-3]	
     return completion
 
-
-
-
 def main(root_dir, dockstring_bool = False, Readme_bool = False, advisory_bool = False):
+    """
+    Summary: Main function to process Python files in a directory and generate docstrings, README, or advisory.
+    Parameters:
+        - root_dir (str): The root directory containing Python files to process.
+        - dockstring_bool (bool): Whether to generate docstrings.
+        - Readme_bool (bool): Whether to generate a README file.
+        - advisory_bool (bool): Whether to generate an advisory file.
+    """
     if not dockstring_bool and not Readme_bool and not advisory_bool:
         print("No arguments provided. Please provide either 'dockstring' or 'Readme' or 'advisory' argument.")
         return
@@ -166,7 +183,6 @@ def main(root_dir, dockstring_bool = False, Readme_bool = False, advisory_bool =
     end_time = time.time()  # end timer
     elapsed_time = end_time - start_time  # calculate elapsed time
     print(f"{num_files_processed} files processed in {elapsed_time:.2f} seconds.")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Add docstrings to Python code using ChatGPT.")
