@@ -126,7 +126,13 @@ prompt_advisory = ChatPromptTemplate.from_template(
             - A detailed description of the recommended changes.
             - An example of how the code could be reorganized, if applicable.
 
-            6. References
+            6. Future Improvements
+            Suggestions for future improvements to the code, including:
+            - A detailed description of the improvements.
+            - The potential benefits of the improvements.
+            - An example of how to implement the improvements, if applicable.
+
+            7. References
             A list of links to relevant resources, such as bug reports or security advisories.
 
             Here is the code: {code}"""
