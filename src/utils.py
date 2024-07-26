@@ -7,8 +7,7 @@ from langchain.chat_models import AzureChatOpenAI
 #os.environ["AZURE_OPENAI_API_KEY"] = "your_key"
 
 os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://elevengpt.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "4a8f724e3ef84157bc5378553d3dec14"
+
 
 
 
