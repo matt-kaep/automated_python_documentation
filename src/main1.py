@@ -22,6 +22,8 @@ def main(root_dir, docstring_bool = False, Readme_bool = False, advisory_bool = 
     if root_dir[:] =="":
         print("Please provide a valid root directory.")
         return
+    
+    Readme_promt_memory = ""
 
     for dirpath, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
@@ -32,10 +34,26 @@ def main(root_dir, docstring_bool = False, Readme_bool = False, advisory_bool = 
                     function_defs_list = []
                     docstring_list = []
                     for function_def in function_defs:
-                        docstring = utils.send_to_chatgpt(function_def)
+                        docstring = utils.send_to_chatgpt(function_def, True, False, False, model = "eleven_gpt_35_turbo_16k")
                         docstring_list.append(docstring)
                         function_defs_list.append(function_def)
                     utils.write_changes_function(file_path, tree,docstring_list,function_defs_list)
+            if Readme_bool or advisory_bool:
+                Readme_promt_memory += f"## {filename}\n\n"
+                if filename.endswith(".py"):
+                    file_path = os.path.join(dirpath, filename)
+                    with open(file_path, "r") as file:
+                        code = file.read()
+                    Readme_promt_memory += f"```python\n{code}\n```\n\n"
+                Readme_promt_memory += "***\n\n"
+        if Readme_bool:
+            Readme_generation = utils.send_to_chatgpt(Readme_promt_memory, False, True, False, model = "gpt4_32k")
+            with open(dirpath + '/Generated_Readme.md', "w") as file:
+                file.write(Readme_generation)
+        if advisory_bool:
+            advisory_generation = utils.send_to_chatgpt(Readme_promt_memory, False, False, True, model = "gpt4_32k")
+            with open(dirpath + '/Generated_advisory.md', "w") as file:
+                file.write(advisory_generation)
     end_time = time.time()  # end timer
     elapsed_time = end_time - start_time  # calculate elapsed time
     print(f"Files processed in {elapsed_time} seconds.")
