@@ -1,6 +1,7 @@
 import argparse
 import os
 import ast
+from dotenv import load_dotenv
 import textwrap
 import requests
 import astunparse
@@ -12,8 +13,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 os.environ["OPENAI_API_VERSION"] = "2024-05-01-preview"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://elevengpt.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "4a8f724e3ef84157bc5378553d3dec14"
+
+load_dotenv() 
 
 def get_function_definitions(file_path):
     with open(file_path, "r") as file:
