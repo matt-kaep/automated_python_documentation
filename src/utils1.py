@@ -1,17 +1,20 @@
 
 import argparse
-import os
 import ast
-from dotenv import load_dotenv
-import textwrap
-import requests
-import astunparse
+import os
 import re
+import subprocess
+import textwrap
+
+import astunparse
 import autopep8
+import requests
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from dotenv import load_dotenv
 from langchain.chat_models import AzureChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+
 os.environ['OPENAI_API_VERSION'] = '2024-05-01-preview'
 load_dotenv()
 
@@ -37,6 +40,7 @@ def get_function_definitions(file_path):
             function_defs.append(node)
     return (function_defs, tree)
 
+
 def extract_key_elements(file_path):
     
     """
@@ -57,13 +61,9 @@ def extract_key_elements(file_path):
         elements.append(f'File: {code}')
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            elements.append(f'''Function: {node.name}
-Docstring: {ast.get_docstring(node)}
-''')
+            elements.append(f'''Function: {node.name} Docstring: {ast.get_docstring(node)} ''')
         elif isinstance(node, ast.ClassDef):
-            elements.append(f'''Class: {node.name}
-Docstring: {ast.get_docstring(node)}
-''')
+            elements.append(f'''Class: {node.name} Docstring: {ast.get_docstring(node)} ''')
     return '\n'.join(elements)
 
 def write_changes_function(file_path, tree, docstring_list, function_defs_list):
@@ -95,6 +95,7 @@ def write_changes_function(file_path, tree, docstring_list, function_defs_list):
 
 def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_completion, model):
     
+    
     """
     Summary: Sends code to ChatGPT for completion and returns the completion.
 
@@ -125,6 +126,17 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_co
     if (completion[:9] == '```python'):
         completion = completion[10:(len(completion) - 3)]
     return completion
+
+def reorganize_imports_in_directory(directory_path):
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                subprocess.run(['isort', file_path])
+    print(f"Les importations dans ont été réorganisées selon les meilleures pratiques.")
+
+
+
 prompt_dockstring = ChatPromptTemplate.from_template('Generate docstrings for the function in the provided Python code.\n        The docstrings of the function should follow the NumPy docstring format and include the following sections:\n        - Summary: A precise and comprehensive summary of what the function does.\n        - Parameters: A list of each parameter, with a brief description of what it does.\n        - Returns: A description of the return value(s) of the function.\n        \n        Do not add any introduction sentence, just return the docstring without the rest of the function.\n        Add 3 double quotes at the beginning and end of the docstring.\n        Here is the code: {code}')
 prompt_Readme = ChatPromptTemplate.from_template('Generate a README file for the provided project.\n            The README file should follow the following pattern and include the following sections:\n            Pattern:\n            # Project Title\n            One paragraph description of the project.\n            ## About\n            A brief description of what the project does and its purpose. An explanation of what each file in the project does.\n            ## Getting Started\n            Instructions on how to get the project up and running on a local machine.\n            ### Prerequisites\n            A list of things needed to install the software and how to install them.\n            ### Installing\n            Step-by-step instructions on how to install the project.\n            ### Running the project\n            Instructions on how to run the project.\n            ## Usage\n            Examples of how to use the project.\n            ## Built Using\n            A list of the technologies used to build the project.\n            ## Contributing\n            Instructions on how to contribute to the project.\n            ## Authors\n            A list of the authors of the project.\n            ## Acknowledgments\n            A list of any acknowledgments.\n            Here is the code: {code}')
 prompt_advisory = ChatPromptTemplate.from_template('Prompt:\n            Generate an advisory in markdown format for the provided project.\n            The advisory should include the following sections:\n\n            1. Code Summary\n            A comprehensive and complete summary of what the code does and its purpose.\n\n            2. Summary\n            A brief summary of the issues and their impact.\n\n            3. Issues\n            A list of the issues found in the code, including:\n            - A detailed description of the issue.\n            - The impact of the issue.\n            - An example of the affected code, if applicable.\n            - Recommendations for how to fix the issue.\n\n            4. Optimization Ideas\n            A list of ideas for optimizing the code, including:\n            - A detailed description of the optimization idea.\n            - The potential benefits of the optimization.\n            - An example of how to implement the optimization, if applicable.\n\n            5. Code Reorganization\n            Recommendations for how to reorganize the code to improve its structure and readability, including:\n            - A detailed description of the recommended changes.\n            - An example of how the code could be reorganized, if applicable.\n\n            6. Future Improvements\n            Suggestions for future improvements to the code, including:\n            - A detailed description of the improvements.\n            - The potential benefits of the improvements.\n            - An example of how to implement the improvements, if applicable.\n\n            7. References\n            A list of links to relevant resources, such as bug reports or security advisories.\n\n            Here is the code: {code}')

@@ -1,17 +1,20 @@
 
 import argparse
-import os
 import ast
+import os
 import textwrap
-import requests
+import time
+
 import astunparse
 import autopep8
+import requests
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from langchain.chat_models import AzureChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+
 import utils1 as utils
-import time
+
 
 def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False):
     
@@ -28,7 +31,6 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     Returns:
     None
     """
-    "\n    Summary:\n    This function performs various tasks based on the provided arguments. If the 'docstring_bool' argument is True, it generates and adds docstrings to Python files in the specified 'root_dir' directory. If the 'Readme_bool' argument is True, it generates a README file in each directory within the 'root_dir' directory. If the 'advisory_bool' argument is True, it generates an advisory file in each directory within the 'root_dir' directory.\n\n    Parameters:\n    - root_dir: A string representing the root directory where the function will perform its tasks.\n    - docstring_bool: A boolean indicating whether to generate and add docstrings to Python files. Default is False.\n    - Readme_bool: A boolean indicating whether to generate README files. Default is False.\n    - advisory_bool: A boolean indicating whether to generate advisory files. Default is False.\n\n    Returns:\n    None\n    "
     start_time = time.time()
     if ((not docstring_bool) and (not Readme_bool) and (not advisory_bool)):
         print("No arguments provided. Please provide either 'dockstring' or 'Readme' or 'advisory' argument.")
@@ -52,17 +54,11 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
                     utils.write_changes_function(file_path, tree, docstring_list, function_defs_list)
                     autopep8.fix_code(file_path)
             if (Readme_bool or advisory_bool):
-                Readme_promt_memory += f'''## {filename}
-
-'''
+                Readme_promt_memory += f'''## {filename}'''
                 if filename.endswith('.py'):
                     file_path = os.path.join(dirpath, filename)
                     key_elements = utils.extract_key_elements(file_path)
-                    Readme_promt_memory += f'''```python
-{key_elements}
-```
-
-'''
+                    Readme_promt_memory += f'''```python{key_elements}```'''
                 Readme_promt_memory += '***\n\n'
         if Readme_bool:
             Readme_generation = utils.send_to_chatgpt(Readme_promt_memory, False, True, False, model='gpt4_32k')
@@ -72,6 +68,7 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
             advisory_generation = utils.send_to_chatgpt(Readme_promt_memory, False, False, True, model='gpt4_32k')
             with open((dirpath + '/Generated_advisory.md'), 'w') as file:
                 file.write(advisory_generation)
+    utils.reorganize_imports_in_directory(root_dir)
     end_time = time.time()
     elapsed_time = (end_time - start_time)
     print(f'Files processed in {elapsed_time} seconds.')
