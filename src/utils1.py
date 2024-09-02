@@ -7,7 +7,6 @@ import subprocess
 import textwrap
 
 import astunparse
-import autopep8
 import requests
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv
@@ -32,15 +31,17 @@ def get_function_definitions(file_path):
     1. function_defs: A list of ast.FunctionDef objects representing the function definitions found in the file.
     2. tree: The abstract syntax tree (AST) of the file, generated using the ast.parse() function.
     """
-    with open(file_path, 'r') as file:
-        tree = ast.parse(file.read())
-    function_defs = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            function_defs.append(node)
-    return (function_defs, tree)
-
-
+    try:
+        with open(file_path, 'r') as file:
+            tree = ast.parse(file.read())
+        function_defs = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                function_defs.append(node)
+        return (function_defs, tree)
+    except Exception as e:
+        print(f"Error parsing file {file_path}: {e}")
+        return ([], None)
 def extract_key_elements(file_path):
     
     """
@@ -52,49 +53,57 @@ def extract_key_elements(file_path):
     Returns: 
     - A string containing the extracted key elements, including the file, functions, and classes along with their docstrings.
     """
-    with open(file_path, 'r') as file:
-        tree = ast.parse(file.read())
-        code = file.read()
-    elements = []
-    file_name = os.path.basename(file_path)
-    if (file_name.find('main') != (- 1)):
-        elements.append(f'File: {code}')
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            elements.append(f'''Function: {node.name} Docstring: {ast.get_docstring(node)} ''')
-        elif isinstance(node, ast.ClassDef):
-            elements.append(f'''Class: {node.name} Docstring: {ast.get_docstring(node)} ''')
-    return '\n'.join(elements)
+    try:
+        with open(file_path, 'r') as file:
+            tree = ast.parse(file.read())
+            code = file.read()
+        elements = []
+        file_name = os.path.basename(file_path)
+        if (file_name.find('main') != (- 1)):
+            elements.append(f'File: {code}')
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                elements.append(f'Function: {node.name} Docstring: {ast.get_docstring(node)} ')
+            elif isinstance(node, ast.ClassDef):
+                elements.append(f'Class: {node.name} Docstring: {ast.get_docstring(node)} ')
+        return '\n'.join(elements)
+    except Exception as e:
+        print(f"Error extracting key elements from file {file_path}: {e}")
+        return ''
 
 def write_changes_function(file_path, tree, docstring_list, function_defs_list):
     
     """
-        Summary: 
-        This function takes in a file path, an abstract syntax tree (AST), a list of docstrings, and a list of function definitions. It modifies the code in the file by inserting the corresponding docstrings for each function definition at the appropriate location.
+    Summary: 
+    This function takes in a file path, an abstract syntax tree (AST), a list of docstrings, and a list of function definitions. It modifies the code in the file by inserting the corresponding docstrings for each function definition at the appropriate location.
 
-        Parameters:
-        - file_path (str): The path of the file to be modified.
-        - tree (ast.AST): The abstract syntax tree of the code in the file.
-        - docstring_list (list): A list of docstrings corresponding to each function definition.
-        - function_defs_list (list): A list of function definitions.
+    Parameters:
+    - file_path (str): The path of the file to be modified.
+    - tree (ast.AST): The abstract syntax tree of the code in the file.
+    - docstring_list (list): A list of docstrings corresponding to each function definition.
+    - function_defs_list (list): A list of function definitions.
 
-        Returns:
-        None
+    Returns:
+    None
     """
-    code = astunparse.unparse(tree)
-    for (j, function_def) in enumerate(function_defs_list):
-        index = code.find(function_def.name)
-        indentation = ((' ' * function_def.col_offset) + (4 * ' '))
-        docstring = textwrap.indent(docstring_list[j], indentation)
-        pattern = re.compile('\\):\\s*')
-        match = pattern.search(code[index:])
-        insert_index = (index + match.end())
-        code = (((((code[:insert_index] + '\n') + docstring) + '\n') + indentation) + code[insert_index:])
-    with open(file_path, 'w') as file:
-        file.write(code)
+    try:
+        code = astunparse.unparse(tree)
+        for (j, function_def) in enumerate(function_defs_list):
+            index = code.find(function_def.name)
+            indentation = ((' ' * function_def.col_offset) + (4 * ' '))
+            docstring = textwrap.indent(docstring_list[j], indentation)
+            pattern = re.compile('\\):\\s*')
+            match = pattern.search(code[index:])
+            insert_index = (index + match.end())
+            code = (((((code[:insert_index] + '\n') + docstring) + '\n') + indentation) + code[insert_index:])
+        
+        with open(file_path, 'w') as file:
+            file.write(code)
+    except Exception as e:
+        print(f"Error writing changes to file {file_path}: {e}")
+
 
 def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_completion, model):
-    
     
     """
     Summary: Sends code to ChatGPT for completion and returns the completion.
@@ -109,31 +118,50 @@ def send_to_chatgpt(code, dockstrings_completion, Readme_completion, advisory_co
     Returns:
     - completion (str): The completion of the code sent to ChatGPT.
     """
-    llm = AzureChatOpenAI(azure_deployment=model, api_version='2024-05-01-preview', temperature=0, max_tokens=None, timeout=None, max_retries=2)
-    if dockstrings_completion:
-        prompt = prompt_dockstring
+    try:
+        llm = AzureChatOpenAI(azure_deployment=model, api_version='2024-05-01-preview', temperature=0, max_tokens=None, timeout=None, max_retries=2)
+        if dockstrings_completion:
+            prompt = prompt_dockstring
+            output_parser = StrOutputParser()
+            chain = ((prompt | llm) | output_parser)
+            completion = chain.invoke({'code': ast.unparse(code)})
+            return completion.strip()
+        if Readme_completion:
+            prompt = prompt_Readme
+        if advisory_completion:
+            prompt = prompt_advisory
         output_parser = StrOutputParser()
         chain = ((prompt | llm) | output_parser)
-        completion = chain.invoke({'code': ast.unparse(code)})
-        return completion.strip()
-    if Readme_completion:
-        prompt = prompt_Readme
-    if advisory_completion:
-        prompt = prompt_advisory
-    output_parser = StrOutputParser()
-    chain = ((prompt | llm) | output_parser)
-    completion = chain.invoke({'code': code})
-    if (completion[:9] == '```python'):
-        completion = completion[10:(len(completion) - 3)]
-    return completion
+        completion = chain.invoke({'code': code})
+        if (completion[:9] == '```python'):
+            completion = completion[10:(len(completion) - 3)]
+        return completion
+    except Exception as e:
+        print(f"Error sending code to ChatGPT: {e}")
+        return ''
 
 def reorganize_imports_in_directory(directory_path):
-    for root, _, files in os.walk(directory_path):
-        for file in files:
-            if file.endswith('.py'):
-                file_path = os.path.join(root, file)
-                subprocess.run(['isort', file_path])
-    print(f"Les importations dans ont été réorganisées selon les meilleures pratiques.")
+    
+    """
+    Summary:
+    Reorganizes imports in all Python files within a given directory using the isort tool.
+
+    Parameters:
+    - directory_path: A string representing the path of the directory to be searched for Python files.
+
+    Returns:
+    None. Prints a message indicating that the imports have been reorganized.
+    """
+    try:
+        for root, _, files in os.walk(directory_path):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    subprocess.run(['isort', file_path])
+        print(f'Imports in {directory_path} have been reorganized according to best practices.')
+    except Exception as e:
+        print(f"Error reorganizing imports in directory {directory_path}: {e}")
+
 
 
 
