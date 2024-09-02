@@ -1,21 +1,18 @@
-from langchain.chat_models import AzureChatOpenAI
-from langchain.embeddings import AzureOpenAIEmbeddings, HuggingFaceEmbeddings
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.schema import HumanMessage
 import os
 
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-
+from langchain.chat_models import AzureChatOpenAI
+from langchain.document_loaders import PyPDFLoader
+from langchain.embeddings import (AzureOpenAIEmbeddings, HuggingFaceEmbeddings,
+                                  OpenAIEmbeddings)
+from langchain.schema import HumanMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
-from langchain.document_loaders import PyPDFLoader
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-
-from langchain_community.vectorstores.utils import filter_complex_metadata
-
 #EMBEDDINGS
 from langchain_community.embeddings import FastEmbedEmbeddings
+from langchain_community.vectorstores.utils import filter_complex_metadata
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 
 
 class ChatPDF:
