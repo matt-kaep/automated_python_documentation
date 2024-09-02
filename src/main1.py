@@ -52,7 +52,6 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
                         docstring_list.append(docstring)
                         function_defs_list.append(function_def)
                     utils.write_changes_function(file_path, tree, docstring_list, function_defs_list)
-                    autopep8.fix_code(file_path)
             if (Readme_bool or advisory_bool):
                 Readme_promt_memory += f'''## {filename}'''
                 if filename.endswith('.py'):
@@ -72,6 +71,8 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     end_time = time.time()
     elapsed_time = (end_time - start_time)
     print(f'Files processed in {elapsed_time} seconds.')
+
+
 if (__name__ == '__main__'):
     parser = argparse.ArgumentParser(description='Add docstrings to Python code using ChatGPT.')
     parser.add_argument('folder', help='The root folder containing Python files to process.')
