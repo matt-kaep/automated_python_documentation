@@ -57,7 +57,7 @@ If you would like to contribute to this project, please fork the repository, mak
 
 ## Authors
 
-- Your Name
+- Matthieu Kaeppelin
 
 ## Acknowledgments
 
