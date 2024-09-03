@@ -2,6 +2,7 @@ import argparse
 import ast
 import os
 import subprocess
+import sys
 import textwrap
 import time
 
@@ -13,9 +14,17 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-import utils as utils
+from .utils import (
+      extract_key_elements,
+      get_function_definitions,
+      reorganize_imports_in_directory,
+      send_to_chatgpt,
+      write_changes_function,
+  )
 
-load_dotenv()
+#from utils import *
+
+load_dotenv(dotenv_path='.env')
 
 
 def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False):
@@ -32,6 +41,9 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     Returns:
     None
     """
+
+    print("DOCSTRING_MODEL: ", os.getenv("MODEL_DOCSTRING"))
+
     start_time = time.time()
     if (not docstring_bool) and (not Readme_bool) and (not advisory_bool):
         print(
@@ -47,12 +59,12 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
             if docstring_bool:
                 if filename.endswith(".py"):
                     file_path = os.path.join(dirpath, filename)
-                    (function_defs, tree) = utils.get_function_definitions(file_path)
+                    (function_defs, tree) = get_function_definitions(file_path)
                     function_defs_list = []
                     docstring_list = []
                     for function_def in function_defs:
                         if not ast.get_docstring(function_def):
-                            docstring = utils.send_to_chatgpt(
+                            docstring = send_to_chatgpt(
                                 function_def,
                                 True,
                                 False,
@@ -65,29 +77,29 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
                             print(
                                 f"Docstring already present for function: {function_def.name}"
                             )
-                    utils.write_changes_function(
+                    write_changes_function(
                         file_path, tree, docstring_list, function_defs_list
                     )
             if Readme_bool or advisory_bool:
                 Readme_promt_memory += f"## {filename}"
                 if filename.endswith(".py"):
                     file_path = os.path.join(dirpath, filename)
-                    key_elements = utils.extract_key_elements(file_path)
+                    key_elements = extract_key_elements(file_path)
                     Readme_promt_memory += f"```python{key_elements}```"
                 Readme_promt_memory += "***\n\n"
         if Readme_bool:
-            Readme_generation = utils.send_to_chatgpt(
-                Readme_promt_memory, False, True, False, model="MODEL_README"
+            Readme_generation = send_to_chatgpt(
+                Readme_promt_memory, False, True, False, model=os.getenv("MODEL_README")
             )
             with open((dirpath + "/Generated_Readme.md"), "w") as file:
                 file.write(Readme_generation)
         if advisory_bool:
-            advisory_generation = utils.send_to_chatgpt(
-                Readme_promt_memory, False, False, True, model="MODEL_ADVISORY"
+            advisory_generation = send_to_chatgpt(
+                Readme_promt_memory, False, False, True, model=os.getenv("MODEL_ADVISORY")
             )
             with open((dirpath + "/Generated_advisory.md"), "w") as file:
                 file.write(advisory_generation)
-    utils.reorganize_imports_in_directory(root_dir)
+    reorganize_imports_in_directory(root_dir)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Files processed in {elapsed_time} seconds.")
@@ -95,7 +107,8 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     subprocess.run(["black", root_dir])
 
 
-if __name__ == "__main__":
+def run():
+
     parser = argparse.ArgumentParser(
         description="Add docstrings to Python code using ChatGPT."
     )
@@ -119,3 +132,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     main(args.folder, args.docstring, args.Readme, args.advisory)
+
+
+if __name__ == "__main__":
+    run()

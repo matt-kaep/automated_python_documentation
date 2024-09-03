@@ -13,7 +13,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-load_dotenv()
+load_dotenv(dotenv_path=".env")
 
 
 def get_function_definitions(file_path):
