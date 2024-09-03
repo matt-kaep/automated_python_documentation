@@ -19,7 +19,19 @@ load_dotenv()
 
 
 def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False):
-    "\n    Summary:\n    This function performs various tasks based on the provided arguments. It can generate docstrings for Python functions, create a README file, and generate an advisory file. It also reorganizes imports in the specified directory and performs black formatting.\n\n    Parameters:\n    - root_dir: A string representing the root directory where the function will perform its tasks.\n    - docstring_bool: A boolean indicating whether to generate docstrings for Python functions. Default is False.\n    - Readme_bool: A boolean indicating whether to create a README file. Default is False.\n    - advisory_bool: A boolean indicating whether to generate an advisory file. Default is False.\n\n    Returns:\n    None\n"
+    """
+    Summary:
+    This function performs various tasks based on the provided arguments. It can generate docstrings for Python functions, create a README file, and generate an advisory file. It also reorganizes imports in the specified directory and formats the code using the 'black' tool.
+
+    Parameters:
+    - root_dir: A string representing the root directory where the function will perform its tasks.
+    - docstring_bool: A boolean indicating whether to generate docstrings for Python functions. Default is False.
+    - Readme_bool: A boolean indicating whether to create a README file. Default is False.
+    - advisory_bool: A boolean indicating whether to generate an advisory file. Default is False.
+
+    Returns:
+    None
+    """
     start_time = time.time()
     if (not docstring_bool) and (not Readme_bool) and (not advisory_bool):
         print(
@@ -79,6 +91,7 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Files processed in {elapsed_time} seconds.")
+    # Run black formatting on all files in the root directory
     subprocess.run(["black", root_dir])
 
 

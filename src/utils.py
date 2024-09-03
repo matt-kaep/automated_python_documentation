@@ -44,7 +44,15 @@ def get_function_definitions(file_path):
 
 
 def extract_key_elements(file_path):
-    "\n    Summary: Extracts key elements from a Python file, including the file itself, functions, and classes along with their docstrings.\n\n    Parameters:\n    - file_path: A string representing the path to the Python file.\n\n    Returns:\n    - A string containing the extracted key elements, including the file, functions, and classes along with their docstrings.\n"
+    """
+    Summary: Extracts key elements from a Python file, including file name, functions, and classes.
+
+    Parameters:
+    - file_path: A string representing the path to the Python file.
+
+    Returns:
+    - A string containing the extracted key elements, separated by newlines.
+    """
     try:
         with open(file_path, "r") as file:
             tree = ast.parse(file.read())
@@ -69,9 +77,21 @@ def extract_key_elements(file_path):
 
 
 def write_changes_function(file_path, tree, docstring_list, function_defs_list):
-    "\n    Summary:\n    This function takes in a file path, an abstract syntax tree (AST), a list of docstrings, and a list of function definitions. It modifies the code in the file by inserting the corresponding docstrings for each function definition at the appropriate location.\n\n    Parameters:\n    - file_path (str): The path of the file to be modified.\n    - tree (ast.AST): The abstract syntax tree of the code in the file.\n    - docstring_list (list): A list of docstrings corresponding to each function definition.\n    - function_defs_list (list): A list of function definitions.\n\n    Returns:\n    None\n"
+    """
+    Summary: Writes docstrings to specified functions in a Python file.
+
+    Parameters:
+        - file_path (str): The path to the Python file.
+        - tree (ast.Module): The abstract syntax tree of the Python file.
+        - docstring_list (list): A list of docstrings to be added to the functions.
+        - function_defs_list (list): A list of function definitions to which the docstrings will be added.
+
+    Returns: None
+    """
     try:
-        code = astunparse.unparse(tree)
+        with open(file_path, "r") as file:
+            code = file.read()
+
         for j, function_def in enumerate(function_defs_list):
             index = code.find(function_def.name)
             indentation = (" " * function_def.col_offset) + (4 * " ")
@@ -91,7 +111,19 @@ def write_changes_function(file_path, tree, docstring_list, function_defs_list):
 def send_to_chatgpt(
     code, dockstrings_completion, Readme_completion, advisory_completion, model
 ):
-    "\n    Summary: Sends code to ChatGPT for completion and returns the completion.\n\n    Parameters:\n    - code (str): The code to be sent to ChatGPT for completion.\n    - dockstrings_completion (bool): If True, the code is treated as a docstring completion.\n    - Readme_completion (bool): If True, the code is treated as a Readme completion.\n    - advisory_completion (bool): If True, the code is treated as an advisory completion.\n    - model (str): The Azure deployment model to be used.\n\n    Returns:\n    - completion (str): The completion of the code sent to ChatGPT.\n"
+    """
+    Summary: Sends code to ChatGPT for completion and returns the completed code.
+
+    Parameters:
+        - code: The code to be sent to ChatGPT for completion.
+        - dockstrings_completion: A boolean indicating whether to perform dockstrings completion.
+        - Readme_completion: A boolean indicating whether to perform Readme completion.
+        - advisory_completion: A boolean indicating whether to perform advisory completion.
+        - model: The Azure deployment model to be used for completion.
+
+    Returns:
+        The completed code as a string.
+    """
     try:
         llm = AzureChatOpenAI(
             azure_deployment=model,
@@ -122,7 +154,16 @@ def send_to_chatgpt(
 
 
 def reorganize_imports_in_directory(directory_path):
-    "\n    Summary:\n    Reorganizes imports in all Python files within a given directory using the isort tool.\n\n    Parameters:\n    - directory_path: A string representing the path of the directory to be searched for Python files.\n\n    Returns:\n    None. Prints a message indicating that the imports have been reorganized.\n"
+    """
+    Summary:
+    This function reorganizes the imports in all Python files within a given directory according to best practices.
+
+    Parameters:
+    - directory_path: A string representing the path of the directory to be processed. It should be a valid directory path.
+
+    Returns:
+    This function does not return any value.
+    """
     try:
         for root, _, files in os.walk(directory_path):
             for file in files:
@@ -137,11 +178,86 @@ def reorganize_imports_in_directory(directory_path):
 
 
 prompt_dockstring = ChatPromptTemplate.from_template(
-    "Generate docstrings for the function in the provided Python code.\n        The docstrings of the function should follow the NumPy docstring format and include the following sections:\n        - Summary: A precise and comprehensive summary of what the function does.\n        - Parameters: A list of each parameter, with a brief description of what it does.\n        - Returns: A description of the return value(s) of the function.\n        \n        Do not add any introduction sentence, just return the docstring without the rest of the function.\n        Add 3 double quotes at the beginning and end of the docstring.\n        Here is the code: {code}"
+    """Generate docstrings for the function in the provided Python code.
+        The docstrings of the function should follow the NumPy docstring format and include the following sections:
+        - Summary: A precise and comprehensive summary of what the function does.
+        - Parameters: A list of each parameter, with a brief description of what it does.
+        - Returns: A description of the return value(s) of the function.
+        
+        Do not add any introduction sentence, just return the docstring without the rest of the function.
+        Add 3 double quotes at the beginning and end of the docstring.
+        Here is the code: {code}"""
 )
+
 prompt_Readme = ChatPromptTemplate.from_template(
-    "Generate a README file for the provided project.\n            The README file should follow the following pattern and include the following sections:\n            Pattern:\n            # Project Title\n            One paragraph description of the project.\n            ## About\n            A brief description of what the project does and its purpose. An explanation of what each file in the project does.\n            ## Directory Hierrachy\n            A list of the files in the project\n            ## Getting Started\n            Instructions on how to get the project up and running on a local machine.\n            ### Prerequisites\n            A list of things needed to install the software and how to install them.\n            ### Installing\n            Step-by-step instructions on how to install the project.\n            ### Running the project\n            Instructions on how to run the project.\n            ## Usage\n            Examples of how to use the project.\n            ## Built Using\n            A list of the technologies used to build the project.\n            ## Contributing\n            Instructions on how to contribute to the project.\n            ## Authors\n            A list of the authors of the project.\n            ## Acknowledgments\n            A list of any acknowledgments.\n            Here is the code: {code}"
+    """Generate a README file for the provided project.
+            The README file should follow the following pattern and include the following sections:
+            Pattern:
+            # Project Title
+            One paragraph description of the project.
+            ## About
+            A brief description of what the project does and its purpose. An explanation of what each file in the project does.
+            ## Directory Hierrachy
+            A list of the files in the project
+            ## Getting Started
+            Instructions on how to get the project up and running on a local machine.
+            ### Prerequisites
+            A list of things needed to install the software and how to install them.
+            ### Installing
+            Step-by-step instructions on how to install the project.
+            ### Running the project
+            Instructions on how to run the project.
+            ## Usage
+            Examples of how to use the project.
+            ## Built Using
+            A list of the technologies used to build the project.
+            ## Contributing
+            Instructions on how to contribute to the project.
+            ## Authors
+            A list of the authors of the project.
+            ## Acknowledgments
+            A list of any acknowledgments.
+            Here is the code: {code}"""
 )
+
 prompt_advisory = ChatPromptTemplate.from_template(
-    "Prompt:\n            Generate an advisory in markdown format for the provided project.\n            The advisory should include the following sections:\n\n            1. Code Summary\n            A comprehensive and complete summary of what the code does and its purpose.\n\n            2. Summary\n            A brief summary of the issues and their impact.\n\n            3. Issues\n            A list of the issues found in the code, including:\n            - A detailed description of the issue.\n            - The impact of the issue.\n            - An example of the affected code, if applicable.\n            - Recommendations for how to fix the issue.\n\n            4. Optimization Ideas\n            A list of ideas for optimizing the code, including:\n            - A detailed description of the optimization idea.\n            - The potential benefits of the optimization.\n            - An example of how to implement the optimization, if applicable.\n\n            5. Code Reorganization\n            Recommendations for how to reorganize the code to improve its structure and readability, including:\n            - A detailed description of the recommended changes.\n            - An example of how the code could be reorganized, if applicable.\n\n            6. Future Improvements\n            Suggestions for future improvements to the code, including:\n            - A detailed description of the improvements.\n            - The potential benefits of the improvements.\n            - An example of how to implement the improvements, if applicable.\n\n            7. References\n            A list of links to relevant resources, such as bug reports or security advisories.\n\n            Here is the code: {code}"
+    """Prompt:
+            Generate an advisory in markdown format for the provided project.
+            The advisory should include the following sections:
+
+            1. Code Summary
+            A comprehensive and complete summary of what the code does and its purpose.
+
+            2. Summary
+            A brief summary of the issues and their impact.
+
+            3. Issues
+            A list of the issues found in the code, including:
+            - A detailed description of the issue.
+            - The impact of the issue.
+            - An example of the affected code, if applicable.
+            - Recommendations for how to fix the issue.
+
+            4. Optimization Ideas
+            A list of ideas for optimizing the code, including:
+            - A detailed description of the optimization idea.
+            - The potential benefits of the optimization.
+            - An example of how to implement the optimization, if applicable.
+
+            5. Code Reorganization and formatting
+            Recommendations for how to reorganize the code to improve its structure and readability, including:
+            - A detailed description of the recommended changes.
+            - An example of how the code could be reorganized, if applicable.
+            - A list of the unclear variable and function names, a proposition of new names for each of them.
+
+            6. Future Improvements
+            Suggestions for future improvements to the code, including:
+            - A detailed description of the improvements.
+            - The potential benefits of the improvements.
+            - An example of how to implement the improvements, if applicable.
+
+            7. References
+            A list of links to relevant resources, such as bug reports or security advisories.
+
+            Here is the code: {code}"""
 )
