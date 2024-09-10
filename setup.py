@@ -1,29 +1,29 @@
 from setuptools import setup, find_packages
+# Lire les dépendances depuis le fichier requirements.txt
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
 
 setup(
-    name="autocode",  # Name of your package
-    version="0.1.0",  # Version of your package
-    packages=find_packages(),  # Automatically find packages in the directory
-    include_package_data=True, # Include additional files in the package
-    install_requires=[        # Optional: Add dependencies here
-        # "dependency1",
-        # "dependency2",
-    ],
+    name="autocode",  # Nom de votre package
+    version="0.1.0",  # Version de votre package
+    packages=find_packages(),  # Trouver automatiquement les packages dans le répertoire
+    include_package_data=True,  # Inclure des fichiers supplémentaires dans le package
+    install_requires=requirements,  # Ajouter les dépendances ici
     entry_points={
         'console_scripts': [
-            'autocode=autocode.main:run',  # Command to run: autocode
+            'autocode=autocode.main:run',  # Commande à exécuter : autocode
         ],
     },
-    author="Your Name",         # Your name
-    author_email="your.email@example.com",  # Your email
-    description="A package to automatically document code",  # Description
-    #long_description=open('README.md').read(),  # Long description from README
-    #long_description_content_type="text/markdown",  # Format of long description
-    #url="https://your-repo-link",  # URL to your repository or project website
+    author="Matthieu Kaeppelin",  # Votre nom
+    author_email="matthieu.kaeppelin@gmail.com",  # Votre email
+    description="Un package pour documenter automatiquement le code",  # Description
+    #long_description=open('README.md').read(),  # Longue description depuis README
+    #long_description_content_type="text/markdown",  # Format de la longue description
+    url="https://votre-lien-repo",  # URL vers votre dépôt ou site web du projet
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",  # License type
+        "License :: OSI Approved :: MIT License",  # Type de licence
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',  # Minimum Python version required
+    python_requires='>=3.6',  # Version minimale de Python requise
 )

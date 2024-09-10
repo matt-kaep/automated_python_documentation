@@ -30,6 +30,7 @@ def get_function_definitions(file_path):
     2. tree: The parsed tree generated from the file.
     If an error occurs during parsing, an empty list and None are returned.
     """
+
     try:
         with open(file_path, "r") as file:
             tree = ast.parse(file.read())
@@ -53,6 +54,7 @@ def extract_key_elements(file_path):
     Returns:
     - A string containing the extracted key elements, separated by newlines.
     """
+
     try:
         with open(file_path, "r") as file:
             tree = ast.parse(file.read())
@@ -76,7 +78,9 @@ def extract_key_elements(file_path):
         return ""
 
 
-def write_changes_function(file_path, tree, docstring_list, function_defs_list):
+def write_changes_function(
+    file_path, tree, docstring_list, function_defs_list, force_bool
+):
     """
     Summary: Writes docstrings to specified functions in a Python file.
 
@@ -85,9 +89,11 @@ def write_changes_function(file_path, tree, docstring_list, function_defs_list):
         - tree (ast.Module): The abstract syntax tree of the Python file.
         - docstring_list (list): A list of docstrings to be added to the functions.
         - function_defs_list (list): A list of function definitions to which the docstrings will be added.
+        - force_bool (bool): A boolean value indicating whether to overwrite existing docstrings.
 
     Returns: None
     """
+
     try:
         with open(file_path, "r") as file:
             code = file.read()
@@ -99,6 +105,15 @@ def write_changes_function(file_path, tree, docstring_list, function_defs_list):
             pattern = re.compile("\\):\\s*")
             match = pattern.search(code[index:])
             insert_index = index + match.end()
+            if force_bool:
+                # Find and delete the first docstring starting after insert_index
+                existing_docstring_pattern = re.compile(r'"""(.*?)"""', re.DOTALL)
+                existing_docstring_match = existing_docstring_pattern.search(
+                    code[insert_index:]
+                )
+                if existing_docstring_match:
+                    start, end = existing_docstring_match.span()
+                    code = code[: insert_index + start] + code[insert_index + end :]
             code = (
                 (((code[:insert_index] + "\n") + docstring) + "\n") + indentation
             ) + code[insert_index:]
@@ -124,6 +139,7 @@ def send_to_chatgpt(
     Returns:
         The completed code as a string.
     """
+
     try:
         llm = AzureChatOpenAI(
             azure_deployment=model,
@@ -164,15 +180,13 @@ def reorganize_imports_in_directory(directory_path):
     Returns:
     This function does not return any value.
     """
+
     try:
         for root, _, files in os.walk(directory_path):
             for file in files:
                 if file.endswith(".py"):
                     file_path = os.path.join(root, file)
                     subprocess.run(["isort", file_path])
-        print(
-            f"Imports in {directory_path} have been reorganized according to best practices."
-        )
     except Exception as e:
         print(f"Error reorganizing imports in directory {directory_path}: {e}")
 

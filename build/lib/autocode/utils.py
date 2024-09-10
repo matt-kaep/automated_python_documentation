@@ -76,7 +76,7 @@ def extract_key_elements(file_path):
         return ""
 
 
-def write_changes_function(file_path, tree, docstring_list, function_defs_list):
+def write_changes_function(file_path, tree, docstring_list, function_defs_list,force_bool):
     """
     Summary: Writes docstrings to specified functions in a Python file.
 
@@ -99,6 +99,13 @@ def write_changes_function(file_path, tree, docstring_list, function_defs_list):
             pattern = re.compile("\\):\\s*")
             match = pattern.search(code[index:])
             insert_index = index + match.end()
+            if force_bool:
+                # Find and delete the first docstring starting after insert_index
+                existing_docstring_pattern = re.compile(r'"""(.*?)"""', re.DOTALL)
+                existing_docstring_match = existing_docstring_pattern.search(code[insert_index:])
+                if existing_docstring_match:
+                    start, end = existing_docstring_match.span()
+                    code = code[:insert_index + start] + code[insert_index + end:]
             code = (
                 (((code[:insert_index] + "\n") + docstring) + "\n") + indentation
             ) + code[insert_index:]

@@ -15,19 +15,66 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from .utils import (
-      extract_key_elements,
-      get_function_definitions,
-      reorganize_imports_in_directory,
-      send_to_chatgpt,
-      write_changes_function,
-  )
+    extract_key_elements,
+    get_function_definitions,
+    reorganize_imports_in_directory,
+    send_to_chatgpt,
+    write_changes_function,
+)
 
-#from utils import *
+# from utils import *
 
-load_dotenv(dotenv_path='.env')
+load_dotenv(dotenv_path=".env")
 
 
-def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False):
+def create_env_file():
+    
+    """
+        Cr�er un fichier .env avec les informations de l'utilisateur.
+    
+        Parameters:
+        - None
+    
+        Returns:
+        - None
+    """
+    
+    OPENAI_API_VERSION = input("Veuillez entrer la version de l'api : ")
+    AZURE_OPENAI_API_KEY = input("Veuillez entrer la clé de l'API d'Azure : ")
+    AZURE_OPENAI_ENDPOINT = input("Veuillez entrer l'endpoint de l'API (URL) : ")
+    MODEL_DOCSTRING = input(
+        "Veuillez entrer le modèle à utiliser pour générer les docstrings :"
+    )
+    MODEL_README = input(
+        "Veuillez entrer le modèle à utiliser pour générer le README :"
+    )
+    MODEL_ADVISORY = input(
+        "Veuillez entrer le modèle à utiliser pour générer les avis :"
+    )
+
+    # Chemin du fichier .env
+    env_file_path = os.path.join(os.path.dirname(__file__), ".env")
+
+    # Créer le fichier .env
+    with open(env_file_path, "w") as f:
+        f.write(f"OPENAI_API_VERSION={OPENAI_API_VERSION}\n")
+        f.write(f"AZURE_OPENAI_API_KEY={AZURE_OPENAI_API_KEY}\n")
+        f.write(f"AZURE_OPENAI_ENDPOINT={AZURE_OPENAI_ENDPOINT}\n")
+        f.write(f"MODEL_DOCSTRING={MODEL_DOCSTRING}\n")
+        f.write(f"MODEL_README={MODEL_README}\n")
+        f.write(f"MODEL_ADVISORY={MODEL_ADVISORY}\n")
+
+    print(f"Fichier .env créé à : {env_file_path}")
+
+
+def main(
+    root_dir,
+    docstring_bool=False,
+    Readme_bool=False,
+    advisory_bool=False,
+    force_bool=False,
+):
+    
     """
     Summary:
     This function performs various tasks based on the provided arguments. It can generate docstrings for Python functions, create a README file, and generate an advisory file. It also reorganizes imports in the specified directory and formats the code using the 'black' tool.
@@ -41,8 +88,18 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
     Returns:
     None
     """
+    
 
-    print("DOCSTRING_MODEL: ", os.getenv("MODEL_DOCSTRING"))
+    # Chemin du fichier .env
+    env_file_path = os.path.join(os.path.dirname(__file__), ".env")
+
+    # Vérifier si le fichier .env existe
+    if not os.path.exists(env_file_path):
+        print("Aucun fichier .env trouvé. Création d'un nouveau fichier .env.")
+        create_env_file()
+
+    # Charger les variables d'environnement
+    load_dotenv(dotenv_path=env_file_path)
 
     start_time = time.time()
     if (not docstring_bool) and (not Readme_bool) and (not advisory_bool):
@@ -73,12 +130,24 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
                             )
                             docstring_list.append(docstring)
                             function_defs_list.append(function_def)
+                        elif force_bool:
+                            # delete the existing docstring
+                            docstring = send_to_chatgpt(
+                                function_def,
+                                True,
+                                False,
+                                False,
+                                model=os.getenv("MODEL_DOCSTRING"),
+                            )
+                            docstring_list.append(docstring)
+                            function_defs_list.append(function_def)
+
                         else:
                             print(
                                 f"Docstring already present for function: {function_def.name}"
                             )
                     write_changes_function(
-                        file_path, tree, docstring_list, function_defs_list
+                        file_path, tree, docstring_list, function_defs_list, force_bool
                     )
             if Readme_bool or advisory_bool:
                 Readme_promt_memory += f"## {filename}"
@@ -95,7 +164,11 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
                 file.write(Readme_generation)
         if advisory_bool:
             advisory_generation = send_to_chatgpt(
-                Readme_promt_memory, False, False, True, model=os.getenv("MODEL_ADVISORY")
+                Readme_promt_memory,
+                False,
+                False,
+                True,
+                model=os.getenv("MODEL_ADVISORY"),
             )
             with open((dirpath + "/Generated_advisory.md"), "w") as file:
                 file.write(advisory_generation)
@@ -108,7 +181,22 @@ def main(root_dir, docstring_bool=False, Readme_bool=False, advisory_bool=False)
 
 
 def run():
+    
+    """
+    Summary:
+    This function is the entry point of the program. It takes command line arguments and calls the main function with the provided arguments.
 
+    Parameters:
+    - folder: A string representing the root folder containing Python files to process.
+    - docstring: A boolean flag indicating whether to add docstrings to the functions in the python files.
+    - Readme: A boolean flag indicating whether to generate a Readme file for the python files.
+    - advisory: A boolean flag indicating whether to generate an advisory file for the python files.
+    - force: A boolean flag indicating whether to generate the docstring even if it is already present.
+
+    Returns:
+    None
+    """
+    
     parser = argparse.ArgumentParser(
         description="Add docstrings to Python code using ChatGPT."
     )
@@ -130,8 +218,13 @@ def run():
         help="Generate an advisory file for the python files.",
         action="store_true",
     )
+    parser.add_argument(
+        "--force",
+        help="Generate the docstring even if it is already present.",
+        action="store_true",
+    )
     args = parser.parse_args()
-    main(args.folder, args.docstring, args.Readme, args.advisory)
+    main(args.folder, args.docstring, args.Readme, args.advisory, args.force)
 
 
 if __name__ == "__main__":

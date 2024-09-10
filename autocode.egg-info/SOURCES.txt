@@ -6,4 +6,5 @@ autocode.egg-info/PKG-INFO
 autocode.egg-info/SOURCES.txt
 autocode.egg-info/dependency_links.txt
 autocode.egg-info/entry_points.txt
+autocode.egg-info/requires.txt
 autocode.egg-info/top_level.txt
