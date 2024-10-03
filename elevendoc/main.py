@@ -30,7 +30,7 @@ load_dotenv(dotenv_path=".env")
 def create_env_file():
     
     """
-        Créer un fichier .env avec les informations de l'utilisateur.
+        Creer un fichier .env avec les informations de l'utilisateur.
     
         Parameters:
         - None

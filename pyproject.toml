@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "elevendoc"
+version = "0.1.2"
+description = "Projet python qui documente automatiquement à l'aide de call api vos projets python, génère des readme et un fichier advisory.md avec des conseils sur votre projet"
+authors = ["Matthieu Kaeppelin <matthieu.kaeppelin@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+azure-identity = "1.17.1"
+langchain-community = "0.2.9"
+openai = "1.37.0"
+astunparse = "^1.6.3"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

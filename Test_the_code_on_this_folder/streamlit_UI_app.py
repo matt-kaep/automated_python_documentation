@@ -19,6 +19,16 @@ def display_messages():
     Returns:
     - No return value.
     """
+    """
+    Summary:
+    This function is used to display a chat interface for uploading a PDF document, sending messages, and processing user input.
+
+    Parameters:
+    - No parameters.
+
+    Returns:
+    - No return value.
+    """
 
     """
     Summary:

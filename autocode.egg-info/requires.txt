@@ -1,5 +1,0 @@
-azure-identity==1.17.1
-langchain-community==0.2.9
-openai==1.37.0
-astunparse
-python-dotenv

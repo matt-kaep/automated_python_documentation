@@ -4,14 +4,14 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
-    name="autocode",  # Nom de votre package
-    version="0.1.0",  # Version de votre package
+    name="elevendoc",  # Nom de votre package
+    version="0.1.1",  # Version de votre package
     packages=find_packages(),  # Trouver automatiquement les packages dans le répertoire
     include_package_data=True,  # Inclure des fichiers supplémentaires dans le package
     install_requires=requirements,  # Ajouter les dépendances ici
     entry_points={
         'console_scripts': [
-            'autocode=autocode.main:run',  # Commande à exécuter : autocode
+            'elevendoc=elevendoc.main:run',  # Commande à exécuter : autocode
         ],
     },
     author="Matthieu Kaeppelin",  # Votre nom

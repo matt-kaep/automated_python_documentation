@@ -1,2 +1,0 @@
-[console_scripts]
-autocode = autocode.main:run

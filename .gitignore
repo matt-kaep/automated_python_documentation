@@ -1,5 +1,10 @@
 
-historical_version_src/
 .env
-1setup_copy.py
-agents.ipynb
+Dockerfile
+.dockerignore
+setup.py
+
+.conda
+build
+dist
+elevendoc.egg-info
