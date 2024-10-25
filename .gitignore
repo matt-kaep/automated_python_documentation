@@ -1,8 +1,11 @@
 
 .env
+.venv
 Dockerfile
 .dockerignore
 setup.py
+poetry.lock
+pyproject.toml
 
 .conda
 build

@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="elevendoc",  # Nom de votre package
-    version="0.1.1",  # Version de votre package
+    version="1.1.3",  # Version de votre package
     packages=find_packages(),  # Trouver automatiquement les packages dans le répertoire
     include_package_data=True,  # Inclure des fichiers supplémentaires dans le package
     install_requires=requirements,  # Ajouter les dépendances ici
